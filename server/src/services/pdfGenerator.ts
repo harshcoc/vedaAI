@@ -1,0 +1,229 @@
+import puppeteer from 'puppeteer';
+import { IGeneratedPaper } from '../types';
+
+/**
+ * Build an HTML template from the generated paper data
+ */
+function buildHTML(paper: IGeneratedPaper): string {
+  const { sections, metadata } = paper;
+
+  const sectionsHTML = sections
+    .map((section) => {
+      const questionsHTML = section.questions
+        .map((q) => {
+          let questionBody = `
+            <div class="question">
+              <div class="question-header">
+                <span class="q-number">Q${q.questionNumber}.</span>
+                <span class="q-marks">[${q.marks} Mark${q.marks > 1 ? 's' : ''}]</span>
+              </div>
+              <div class="q-text">${q.text}</div>`;
+
+          if (q.options && q.options.length > 0) {
+            const optionsHTML = q.options
+              .map((opt, idx) => {
+                const label = String.fromCharCode(97 + idx); // a, b, c, d
+                return `<div class="option">(${label}) ${opt}</div>`;
+              })
+              .join('');
+            questionBody += `<div class="options">${optionsHTML}</div>`;
+          }
+
+          questionBody += `</div>`;
+          return questionBody;
+        })
+        .join('');
+
+      return `
+        <div class="section">
+          <h2 class="section-title">${section.title}</h2>
+          <p class="section-instruction"><em>${section.instruction}</em></p>
+          ${questionsHTML}
+        </div>`;
+    })
+    .join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Paper - ${metadata.subject}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.5;
+      color: #000;
+      padding: 0;
+    }
+    .paper-header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .paper-header h1 {
+      font-size: 18pt;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .paper-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 11pt;
+    }
+    .student-info {
+      border: 1px solid #000;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .student-info p {
+      margin-bottom: 8px;
+    }
+    .student-info .line {
+      display: inline-block;
+      width: 250px;
+      border-bottom: 1px solid #000;
+    }
+    .general-instructions {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+    }
+    .general-instructions h3 {
+      margin-bottom: 8px;
+    }
+    .general-instructions ul {
+      padding-left: 20px;
+    }
+    .general-instructions li {
+      margin-bottom: 4px;
+      font-size: 10pt;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .section-title {
+      font-size: 14pt;
+      text-decoration: underline;
+      margin-bottom: 5px;
+    }
+    .section-instruction {
+      margin-bottom: 15px;
+      font-size: 10pt;
+      color: #333;
+    }
+    .question {
+      margin-bottom: 15px;
+      page-break-inside: avoid;
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 3px;
+    }
+    .q-number {
+      font-weight: bold;
+    }
+    .q-marks {
+      font-size: 10pt;
+      color: #555;
+    }
+    .q-text {
+      margin-left: 25px;
+      margin-bottom: 5px;
+    }
+    .options {
+      margin-left: 40px;
+    }
+    .option {
+      margin-bottom: 3px;
+    }
+    .paper-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #000;
+      font-size: 10pt;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="paper-header">
+    <h1>${metadata.subject}</h1>
+    <h2>Question Paper</h2>
+    <div class="paper-info">
+      <span>Total Marks: ${metadata.totalMarks}</span>
+      <span>Total Questions: ${metadata.totalQuestions}</span>
+      <span>Duration: ${metadata.duration}</span>
+    </div>
+  </div>
+
+  <div class="student-info">
+    <p>Name: <span class="line"></span></p>
+    <p>Roll Number: <span class="line"></span></p>
+    <p>Date: <span class="line"></span></p>
+  </div>
+
+  <div class="general-instructions">
+    <h3>General Instructions:</h3>
+    <ul>
+      <li>Read all questions carefully before answering.</li>
+      <li>All questions are compulsory unless stated otherwise.</li>
+      <li>Marks for each question are indicated on the right side.</li>
+      <li>Write neatly and legibly.</li>
+    </ul>
+  </div>
+
+  ${sectionsHTML}
+
+  <div class="paper-footer">
+    <p>--- End of Question Paper ---</p>
+    <p>Generated by VedaAI Assessment Creator</p>
+  </div>
+</body>
+</html>`;
+}
+
+/**
+ * Generate a PDF buffer from a GeneratedPaper document
+ */
+export async function generatePDF(paper: IGeneratedPaper, _title?: string): Promise<Buffer> {
+  const html = buildHTML(paper);
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'domcontentloaded' });
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm',
+      },
+      printBackground: true,
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
+}

@@ -1,0 +1,126 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Sizes */
+.btn--sm {
+  padding: 6px 12px;
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+}
+
+.btn--md {
+  padding: 8px 18px;
+  font-size: var(--font-size-base);
+}
+
+.btn--lg {
+  padding: 12px 24px;
+  font-size: var(--font-size-md);
+  border-radius: var(--radius-lg);
+}
+
+/* Primary */
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+
+.btn--primary:not(:disabled):hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  box-shadow: 0 4px 12px rgba(232, 80, 58, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Secondary */
+.btn--secondary {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.btn--secondary:not(:disabled):hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Ghost */
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn--ghost:not(:disabled):hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+}
+
+/* Danger */
+.btn--danger {
+  background: transparent;
+  color: var(--color-error);
+  border-color: transparent;
+}
+
+.btn--danger:not(:disabled):hover {
+  background: var(--badge-hard-bg);
+}
+
+/* Full width */
+.btn--full {
+  width: 100%;
+}
+
+/* Icon button */
+.btn--icon-only {
+  padding: 8px;
+  aspect-ratio: 1;
+}
+
+/* Loading */
+.btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.btn--loading .btn__content {
+  visibility: hidden;
+}
+
+.btn--loading .btn__spinner-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
