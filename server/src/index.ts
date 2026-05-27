@@ -11,12 +11,14 @@ import assignmentRoutes from './routes/assignments';
 import generationRoutes from './routes/generation';
 import { errorHandler } from './middleware/errorHandler';
 
+import { corsOrigin } from './config/cors';
+
 const app = express();
 const server = http.createServer(app);
 
 // ─── Middleware ───
 app.use(cors({
-  origin: env.CLIENT_URL,
+  origin: corsOrigin,
   credentials: true,
 }));
 app.use(express.json());

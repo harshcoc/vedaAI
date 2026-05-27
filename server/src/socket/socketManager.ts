@@ -2,6 +2,8 @@ import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from '../config/env';
 
+import { corsOrigin } from '../config/cors';
+
 let io: SocketIOServer | null = null;
 
 /**
@@ -10,7 +12,7 @@ let io: SocketIOServer | null = null;
 export function setupSocketIO(server: HttpServer): SocketIOServer {
   io = new SocketIOServer(server, {
     cors: {
-      origin: env.CLIENT_URL,
+      origin: corsOrigin,
       methods: ['GET', 'POST'],
       credentials: true,
     },
