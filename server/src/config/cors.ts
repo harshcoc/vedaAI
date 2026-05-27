@@ -14,8 +14,8 @@ export const corsOrigin = (
   origin: string | undefined,
   callback: (err: Error | null, allow?: boolean) => void
 ): void => {
-  // Allow requests with no origin (like server-to-server or curl)
-  if (!origin) {
+  // Allow requests with no origin (like server-to-server, curl, or browser redirects with 'null' origin)
+  if (!origin || origin === 'null') {
     callback(null, true);
     return;
   }
