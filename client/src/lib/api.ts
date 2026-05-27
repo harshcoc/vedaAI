@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const rawBaseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+let rawBaseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+// Defensively prepend protocol if omitted to prevent relative URL matching
+if (!rawBaseURL.startsWith('http://') && !rawBaseURL.startsWith('https://')) {
+  if (rawBaseURL.includes('localhost') || rawBaseURL.includes('127.0.0.1')) {
+    rawBaseURL = `http://${rawBaseURL}`;
+  } else {
+    rawBaseURL = `https://${rawBaseURL}`;
+  }
+}
+
 const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
 
 const api = axios.create({
